@@ -1,59 +1,59 @@
 # app.py
-from flask import Flask, request, jsonify
-import os
+from fastapi import FastAPI, File, UploadFile, HTTPException
+import uvicorn
 import cv2
 import numpy as np
-from model_loader import load_model, list_models
+from .model_loader import list_models, latest_model
 
-app = Flask(__name__)
+app = FastAPI(title="Plant Disease Detection API")
 
-# Configuration
-TARGET_SIZE = (64, 64)  # Match preprocessing in training
-WITH_SEGMENTATION = False  # Change if using segmentation models
+# Config
+TARGET_SIZE = (64, 64)
+WITH_SEGMENTATION = False
 
 # Load latest model on startup
-model, le = load_model(*list(load_model(latest_model_name := None if WITH_SEGMENTATION==False else None))) if False else (None, None)
+model, le = latest_model(with_segmentation=WITH_SEGMENTATION)
 
-@app.route('/')
+@app.get("/")
 def home():
-    return "🌱 Plant Disease Detection API is running!"
+    return {"status": "Plant Disease Detection API is running"}
 
-def preprocess_image(file, target_size=TARGET_SIZE):
-    """Convert uploaded image to model input"""
-    file_bytes = np.asarray(bytearray(file.read()), dtype=np.uint8)
-    img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+def preprocess_image(file_bytes, target_size=TARGET_SIZE):
+    img_array = np.frombuffer(file_bytes, np.uint8)
+    img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+    if img is None:
+        raise ValueError("Invalid image")
+
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img = cv2.resize(img, target_size)
     img = img.astype(np.float32) / 255.0
     return img.flatten().reshape(1, -1)
 
-@app.route('/predict', methods=['POST'])
-def predict():
+@app.post("/predict")
+async def predict(file: UploadFile = File(...)):
     global model, le
+
     if model is None or le is None:
-        return jsonify({"error": "No model loaded. Please load a model first."}), 500
-    
-    if 'file' not in request.files:
-        return jsonify({"error": "No file uploaded"}), 400
-    
-    file = request.files['file']
+        raise HTTPException(status_code=500, detail="No model loaded")
+
     try:
-        image = preprocess_image(file)
+        file_bytes = await file.read()
+        image = preprocess_image(file_bytes)
         pred = model.predict(image)
         label = le.inverse_transform(pred)[0]
-        return jsonify({"prediction": label})
+        return {"prediction": label}
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.route('/models', methods=['GET'])
+@app.get("/models")
 def get_models():
-    """Return list of available models"""
     models = list_models(with_segmentation=WITH_SEGMENTATION)
-    return jsonify({"models": models})
+    return {"models": models}
 
-if __name__ == '__main__':
-    # Load the latest model dynamically
-    from model_loader import latest_model
-    model, le = latest_model(with_segmentation=WITH_SEGMENTATION)
-    
-    app.run(host='0.0.0.0', port=5000, debug=True)
+if __name__ == "__main__":
+    uvicorn.run(
+        "app:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True
+    )

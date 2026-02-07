@@ -1,8 +1,12 @@
 numpy
-pandas
 opencv-python
 scikit-learn
 xgboost
+joblib
+fastapi
+uvicorn[standard]
+python-multipart
+pandas
 matplotlib
 seaborn
 streamlit

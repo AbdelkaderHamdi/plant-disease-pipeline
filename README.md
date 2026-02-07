@@ -66,12 +66,12 @@ plant-disease-pipeline/
 2. **Run Training Without Segmentation**:
 
    ```bash
-   python notebooks/plant_disease_pipeline.py --plant_name apple --model_type random_forest
+   python notebooks/plant_disease_pipeline.py --plant_name Apple --model_type random_forest
    ```
 3. **Run Training With Segmentation**:
 
    ```bash
-   python  notebooks/plant_disease_pipeline.py --plant_name apple --model_type xgboost --with_segmentation --segmentation_method otsu
+   python  notebooks/plant_disease_pipeline.py --plant_name Apple --model_type xgboost --with_segmentation --segmentation_method otsu
 
    ```
 4. **Evaluate and Compare Results**:
