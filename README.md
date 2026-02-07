@@ -25,6 +25,12 @@ The aim is to combine **automation**, **flexibility**, and **scalability** for a
 * **Feature Importance:** Understand which features drive predictions.
 * **Modular Structure:** Clear separation between data loading, preprocessing, training, and evaluation.
 
+This pipeline detects plant diseases using two approaches:
+1. Baseline: Direct ML classification (RandomForest/XGBoost)
+2. Segmentation-enhanced: Preprocess images to isolate plant regions before classification
+
+The system is plant-agnostic – works with apple, tomato, wheat, etc. by loading appropriate datasets.
+
 ---
 
 ## 📂 Project Structure
@@ -67,7 +73,7 @@ You can store multiple plants’ datasets in `data/{plant-name}-sampled/`.
 2. **Run Training Without Segmentation**:
 
    ```bash
-   python notebooks/Train_NoSegmentation,ipynb 
+   python notebooks/Train_NoSegmentation.ipynb 
    ```
 3. **Run Training With Segmentation**:
 
