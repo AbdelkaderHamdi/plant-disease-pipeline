@@ -5,21 +5,23 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set_style('darkgrid')
+
 import json
 import joblib
 import argparse
 from datetime import datetime
-from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
+
 import warnings
 warnings.filterwarnings("ignore")
 
 # Configuration des chemins de base
-BASE_DIR = "C:/Users/Abdel/OneDrive/Desktop/ProjectsFolder/plant-disease-pipeline"
-DATA_DIR = "C:/Users/Abdel/OneDrive/Desktop/ProjectsFolder/plant-disease-pipeline/data/sampled-plants-diseases"
+BASE_DIR = "D:\\projects\\plant-disease-pipeline"
+DATA_DIR = "D:\\projects\\plant-disease-pipeline\\data\\sampled-plants-diseases"
 MODELS_DIR = os.path.join(BASE_DIR, "models")
 NOTEBOOKS_DIR = os.path.join(BASE_DIR, "notebooks")
 DEPLOYMENT_DIR = os.path.join(BASE_DIR, "deployment")
@@ -30,6 +32,7 @@ os.makedirs(os.path.join(MODELS_DIR, "without_segmentation"), exist_ok=True)
 os.makedirs(os.path.join(MODELS_DIR, "with_segmentation"), exist_ok=True)
 os.makedirs(NOTEBOOKS_DIR, exist_ok=True)
 os.makedirs(DEPLOYMENT_DIR, exist_ok=True)
+
 
 def define_paths(data_dir):
     """Génère les chemins des fichiers et les étiquettes à partir de la structure des répertoires"""
@@ -50,11 +53,13 @@ def define_paths(data_dir):
 
     return filepaths, labels
 
+
 def define_df(files, classes):
     """Concatène les chemins des fichiers avec les étiquettes dans un dataframe"""
     Fseries = pd.Series(files, name='filepaths')
     Lseries = pd.Series(classes, name='labels')
     return pd.concat([Fseries, Lseries], axis=1)
+
 
 def split_data(data_dir):
     """Divise le dataframe en ensembles d'entraînement, de validation et de test"""
@@ -67,6 +72,7 @@ def split_data(data_dir):
     valid_df, test_df = train_test_split(dummy_df, train_size=0.5, shuffle=True, random_state=123, stratify=strat)
 
     return train_df, valid_df, test_df
+
 
 def segment_image(image, method='otsu'):
     """
@@ -113,6 +119,7 @@ def segment_image(image, method='otsu'):
     
     return segmented
 
+
 def preprocess_image(img_path, target_size=(64, 64), with_segmentation=False, segmentation_method='otsu'):
     """Prétraitement d'une image avec ou sans segmentation"""
     try:
@@ -156,6 +163,7 @@ def preprocess_image(img_path, target_size=(64, 64), with_segmentation=False, se
         print(f"Erreur lors du traitement de {img_path}: {str(e)}")
         return None
 
+
 def create_dataset(df, dataset_name, target_size=(64, 64), with_segmentation=False, segmentation_method='otsu'):
     """Prétraite un dataset complet"""
     print(f"\nTraitement du dataset {dataset_name} ({len(df)} images)...")
@@ -179,6 +187,7 @@ def create_dataset(df, dataset_name, target_size=(64, 64), with_segmentation=Fal
     
     return np.array(all_images, dtype=np.float32)
 
+
 def train_model(X_train, y_train, model_type='random_forest', params=None):
     """Entraîne un modèle (RandomForest ou XGBoost)"""
     if model_type == 'random_forest':
@@ -196,6 +205,7 @@ def train_model(X_train, y_train, model_type='random_forest', params=None):
     
     return model, le
 
+
 def evaluate_model(model, X_test, y_test, le):
     """Évalue un modèle et retourne les métriques"""
     y_pred = model.predict(X_test)
@@ -210,6 +220,7 @@ def evaluate_model(model, X_test, y_test, le):
         'classification_report': report,
         'confusion_matrix': confusion_mat.tolist()  # Convertir en liste pour la sérialisation JSON
     }
+
 
 def save_model_and_metrics(model, le, metrics, plant_name, model_type, with_segmentation=False):
     """Sauvegarde le modèle et les métriques"""
@@ -241,6 +252,7 @@ def save_model_and_metrics(model, le, metrics, plant_name, model_type, with_segm
     
     return model_path, metrics_path
 
+
 def show_sample_images(df, num_samples=25, target_size=(224, 224)):
     """Affiche des exemples d'images du dataframe"""
     sample_df = df.sample(n=min(num_samples, len(df)), random_state=42)
@@ -268,6 +280,8 @@ def show_sample_images(df, num_samples=25, target_size=(224, 224)):
     
     plt.tight_layout()
     plt.show()
+
+
 
 def main():
     """Fonction principale pour exécuter le pipeline"""

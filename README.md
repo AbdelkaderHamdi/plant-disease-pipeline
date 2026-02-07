@@ -42,12 +42,10 @@ plant-disease-pipeline/
 ├── requirements.txt
 │
 ├── data/
-│   ├── plant-name-sampled/             # Original datasets
+│   ├── sampled-plants-diseases/             # Original datasets
 │
 ├── notebooks/
 │   ├── EDA.ipynb
-│   ├── Train_NoSegmentation.ipynb
-│   ├── Train_WithSegmentation.ipynb
 │   └── Evaluation.ipynb
 │
 ├── models/
@@ -62,23 +60,19 @@ plant-disease-pipeline/
 
 ---
 
-
-You can store multiple plants’ datasets in `data/{plant-name}-sampled/`.
-
----
-
 ## 🏃 Running the Pipeline
 
 1. **Set Dataset Path** in notebooks.
 2. **Run Training Without Segmentation**:
 
    ```bash
-   python notebooks/Train_NoSegmentation.ipynb 
+   python notebooks/plant_disease_pipeline.py --plant_name apple --model_type random_forest
    ```
 3. **Run Training With Segmentation**:
 
    ```bash
-   python notebooks/Train_WithSegmentation.ipynb 
+   python  notebooks/plant_disease_pipeline.py --plant_name apple --model_type xgboost --with_segmentation --segmentation_method otsu
+
    ```
 4. **Evaluate and Compare Results**:
 
